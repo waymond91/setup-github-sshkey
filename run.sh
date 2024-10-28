@@ -17,7 +17,7 @@ REPO_URL="$1"
 # Extract the repository name from the URL
 REPO_NAME=$(basename -s .git "$REPO_URL")
 
-# Install git, Python, and UUID generation tool
+# Install required packages
 sudo apt update
 sudo apt install -y git python3 python3-pip uuid-runtime
 
@@ -27,65 +27,57 @@ UUID_SUFFIX=$(uuidgen | cut -c1-4)
 # Get the current hostname
 DEVICE_NAME=$(hostname)
 
-# Generate a new SSH key for Git, using the repo name
+# Generate a new SSH key for Git
 GIT_KEY_PATH="$HOME/.ssh/${REPO_NAME}_ed25519_${UUID_SUFFIX}"
-echo "Generating a new SSH key for Git..."
+echo "Generating a new SSH key for $REPO_NAME..."
 ssh-keygen -t ed25519 -f "$GIT_KEY_PATH" -N "" -C "${DEVICE_NAME}-${REPO_NAME}-${UUID_SUFFIX}"
 echo "Git-specific SSH key generated for repository: $REPO_NAME"
 
 # Show the user the public key and format it for deploy keys
-echo -e "\nAdd the following SSH key as a deploy key to your Git repository:"
-echo "Title: ${DEVICE_NAME}-${REPO_NAME}-${UUID_SUFFIX}"
-echo "Key:"
+TITLE="${DEVICE_NAME}-${REPO_NAME}-${UUID_SUFFIX}"
+
+# Apply terminal formatting
+BOLD=$(tput bold)
+NORMAL=$(tput sgr0)
+BLUE=$(tput setaf 4)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+RED=$(tput setaf 1)
+
+# Output the formatted key with instructions
+echo -e "\n${BOLD}${GREEN}===================================================="
+echo -e "    ADD THIS SSH KEY AS A DEPLOY KEY TO YOUR REPO"
+echo -e "====================================================${NORMAL}"
+
+echo -e "${BOLD}${YELLOW}Title:${NORMAL} ${BLUE}$TITLE${NORMAL}"
+echo -e "${BOLD}${YELLOW}Key:${NORMAL}"
+echo -e "${BLUE}"
 cat "$GIT_KEY_PATH.pub"
-echo ""
+echo -e "${NORMAL}"
+
+echo -e "${BOLD}${GREEN}===================================================="
+echo -e "  Copy the above key and add it as a deploy key in"
+echo -e "     your Git repository's settings page."
+echo -e "====================================================${NORMAL}"
+
+# Wait for user input to proceed
 read -p "Press Enter after adding the SSH key to continue..."
 
-# Extract the domain from the repository URL
-GIT_DOMAIN=$(echo "$REPO_URL" | awk -F'[/:]' '{print $4}')
-
-# Configure SSH to use this key for the Git host
+# Configure SSH to use this key for Git
 SSH_CONFIG="$HOME/.ssh/config"
-if ! grep -q "Host $GIT_DOMAIN-${UUID_SUFFIX}" "$SSH_CONFIG"; then
+if ! grep -q "Host $REPO_NAME" "$SSH_CONFIG"; then
     echo "Configuring SSH to use the new Git-specific key..."
-    echo -e "\nHost $GIT_DOMAIN-${UUID_SUFFIX}\n  HostName $GIT_DOMAIN\n  IdentityFile $GIT_KEY_PATH\n  User git" | tee -a "$SSH_CONFIG" > /dev/null
-    echo "SSH configuration for Git set up."
-else
-    echo "SSH configuration for this Git key already exists."
+    echo -e "\nHost $REPO_NAME\n  HostName github.com\n  IdentityFile $GIT_KEY_PATH\n  User git" | tee -a "$SSH_CONFIG" > /dev/null
 fi
 
-# Check if the directory already exists
-if [ -d "$REPO_NAME" ]; then
-    echo "Directory '$REPO_NAME' already exists."
-    read -p "Do you want to (D)elete the directory, (S)kip cloning, or (E)xit? [D/S/E]: " USER_CHOICE
-    case "$USER_CHOICE" in
-        [Dd]* )
-            echo "Deleting the existing directory '$REPO_NAME'..."
-            rm -rf "$REPO_NAME"
-            ;;
-        [Ss]* )
-            echo "Skipping cloning. You can manually pull changes inside the existing directory."
-            exit 0
-            ;;
-        [Ee]* )
-            echo "Exiting without making changes."
-            exit 0
-            ;;
-        * )
-            echo "Invalid choice. Exiting."
-            exit 1
-            ;;
-    esac
-fi
-
-# Attempt to clone the repository using the new key
+# Clone the repository using the new key
 echo "Cloning repository: $REPO_URL..."
 GIT_SSH_COMMAND="ssh -i $GIT_KEY_PATH" git clone "$REPO_URL"
 
 # Check if the clone was successful
 if [ $? -eq 0 ]; then
-    echo "Repository cloned successfully."
+    echo -e "${BOLD}${GREEN}Repository cloned successfully.${NORMAL}"
 else
-    echo "Failed to clone the repository. Please check the SSH key and repository URL."
+    echo -e "${BOLD}${RED}Failed to clone the repository. Please check the SSH key and repository URL.${NORMAL}"
     exit 1
 fi
