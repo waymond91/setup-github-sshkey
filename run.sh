@@ -24,13 +24,12 @@ if [ ! -f "$GITHUB_KEY_PATH" ]; then
     echo "GitHub-specific SSH key generated."
 
     # Show the user the public key and format it for deploy keys
-    echo -e "\nAdd the following SSH key as a deploy key to your GitHub repository:"
+    echo "Add the following SSH key as a deploy key to your GitHub repository:"
     echo "Title: ${DEVICE_NAME}-${UUID_SUFFIX}-github"
     echo "Key:"
     cat "$GITHUB_KEY_PATH.pub"
     echo ""
-    echo "Please add the SSH key to GitHub and press Enter to continue..."
-    read -r
+    read -p "Press Enter after adding the SSH key to continue..."
 else
     echo "GitHub-specific SSH key already exists at $GITHUB_KEY_PATH."
     echo "If you need to add this key to GitHub, use the following command to display it:"
@@ -48,21 +47,8 @@ else
 fi
 
 # Ask user to enter GitHub repository URL
-if [ -t 0 ]; then
-    # If running in an interactive terminal
-    read -p "Enter the GitHub repository URL (SSH format): " REPO_URL
-else
-    # If running non-interactively, use default or exit
-    REPO_URL=""
-    echo "Script is running non-interactively. Please provide the GitHub repository URL."
-    exit 1
-fi
+read -p "Enter the GitHub repository URL (SSH format): " REPO_URL
 
 # Clone the repository using the new key
-if [ -n "$REPO_URL" ]; then
-    GIT_SSH_COMMAND="ssh -i $GITHUB_KEY_PATH" git clone "$REPO_URL"
-    echo "Repository cloned successfully."
-else
-    echo "No repository URL provided. Exiting..."
-    exit 1
-fi
+GIT_SSH_COMMAND="ssh -i $GITHUB_KEY_PATH" git clone "$REPO_URL"
+echo "Repository cloned successfully."
