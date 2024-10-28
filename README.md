@@ -18,5 +18,5 @@ This repository contains a Bash script designed to set up a Raspberry Pi for Git
 
 1. Clone this repository to your local machine:
 ```bash
-curl -sL https://raw.githubusercontent.com/waymond91/pi-setup-script/main/run.sh | bash
+curl -sL https://raw.githubusercontent.com/waymond91/setup-github-sshkey/main/run.sh | bash
 ```
