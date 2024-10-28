@@ -33,35 +33,32 @@ echo "Generating a new SSH key for $REPO_NAME..."
 ssh-keygen -t ed25519 -f "$GIT_KEY_PATH" -N "" -C "${DEVICE_NAME}-${REPO_NAME}-${UUID_SUFFIX}"
 echo "Git-specific SSH key generated for repository: $REPO_NAME"
 
-# Show the user the public key and format it for deploy keys
-TITLE="${DEVICE_NAME}-${REPO_NAME}-${UUID_SUFFIX}"
-
 # Apply terminal formatting
 BOLD=$(tput bold)
 NORMAL=$(tput sgr0)
 BLUE=$(tput setaf 4)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
-RED=$(tput setaf 1)
 
-# Output the formatted key with instructions
+# Show the user the public key and format it for deploy keys
+TITLE="${DEVICE_NAME}-${REPO_NAME}-${UUID_SUFFIX}"
+
 echo -e "\n${BOLD}${GREEN}===================================================="
 echo -e "    ADD THIS SSH KEY AS A DEPLOY KEY TO YOUR REPO"
 echo -e "====================================================${NORMAL}"
-
 echo -e "${BOLD}${YELLOW}Title:${NORMAL} ${BLUE}$TITLE${NORMAL}"
 echo -e "${BOLD}${YELLOW}Key:${NORMAL}"
 echo -e "${BLUE}"
 cat "$GIT_KEY_PATH.pub"
 echo -e "${NORMAL}"
-
 echo -e "${BOLD}${GREEN}===================================================="
 echo -e "  Copy the above key and add it as a deploy key in"
 echo -e "     your Git repository's settings page."
 echo -e "====================================================${NORMAL}"
 
-# Wait for user input to proceed
-read -p "Press Enter after adding the SSH key to continue..."
+# Wait for user confirmation before proceeding
+echo -e "\n${BOLD}${YELLOW}IMPORTANT:${NORMAL} Please add the SSH key above to your Git repository as a deploy key."
+read -p "Press Enter after you have added the key to proceed..."
 
 # Configure SSH to use this key for Git
 SSH_CONFIG="$HOME/.ssh/config"
