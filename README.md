@@ -16,7 +16,7 @@ This repository contains a Bash script designed to set up a Raspberry Pi for Git
 
 ### Run Remotely
 
-1. Clone this repository to your local machine:
+1. Run on your local machine:
 ```bash
-wget -q https://raw.githubusercontent.com/waymond91/setup-github-sshkey/main/run.sh -O setup_github.sh && bash setup_github.sh
+curl -sL bit.ly/4hlyaKu | bash -s git@github.com:<username>/<repository>.git
 ```
