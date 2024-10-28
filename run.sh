@@ -6,6 +6,14 @@ if [ "$EUID" -eq 0 ]; then
     exit 1
 fi
 
+# Check if a repository URL is provided as an argument
+if [ -z "$1" ]; then
+    echo "Usage: $0 <GitHub repository URL (SSH format)>"
+    exit 1
+fi
+
+REPO_URL="$1"
+
 # Install git, Python, and UUID generation tool
 sudo apt update
 sudo apt install -y git python3 python3-pip uuid-runtime
@@ -40,14 +48,6 @@ else
     echo "SSH configuration for this GitHub key already exists."
 fi
 
-# Ask user to enter GitHub repository URL
-read -p "Enter the GitHub repository URL (SSH format): " REPO_URL
-
 # Clone the repository using the new key
-if [ -n "$REPO_URL" ]; then
-    GIT_SSH_COMMAND="ssh -i $GITHUB_KEY_PATH" git clone "$REPO_URL"
-    echo "Repository cloned successfully."
-else
-    echo "No repository URL provided. Exiting..."
-    exit 1
-fi
+GIT_SSH_COMMAND="ssh -i $GITHUB_KEY_PATH" git clone "$REPO_URL"
+echo "Repository cloned successfully."
