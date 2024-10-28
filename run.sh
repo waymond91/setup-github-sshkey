@@ -54,6 +54,30 @@ else
     echo "SSH configuration for this Git key already exists."
 fi
 
+# Check if the directory already exists
+if [ -d "$REPO_NAME" ]; then
+    echo "Directory '$REPO_NAME' already exists."
+    read -p "Do you want to (D)elete the directory, (S)kip cloning, or (E)xit? [D/S/E]: " USER_CHOICE
+    case "$USER_CHOICE" in
+        [Dd]* )
+            echo "Deleting the existing directory '$REPO_NAME'..."
+            rm -rf "$REPO_NAME"
+            ;;
+        [Ss]* )
+            echo "Skipping cloning. You can manually pull changes inside the existing directory."
+            exit 0
+            ;;
+        [Ee]* )
+            echo "Exiting without making changes."
+            exit 0
+            ;;
+        * )
+            echo "Invalid choice. Exiting."
+            exit 1
+            ;;
+    esac
+fi
+
 # Attempt to clone the repository using the new key
 echo "Cloning repository: $REPO_URL..."
 GIT_SSH_COMMAND="ssh -i $GIT_KEY_PATH" git clone "$REPO_URL"
