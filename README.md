@@ -15,8 +15,7 @@ This repository contains a Bash script designed to set up a Raspberry Pi for Git
 - Git, Python3, and UUID generation tools are required (automatically installed by the script).
 
 ### Run Remotely
-
-1. Run on your local machine:
+Run on your local machine:
 ```bash
-curl -sL bit.ly/4hlyaKu | bash -s git@github.com:<username>/<repository>.git
+wget -qO- bit.ly/4hlyaKu | bash -s git@github.com:<username>/<repository>.git
 ```
