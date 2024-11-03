@@ -14,12 +14,26 @@ fi
 
 REPO_URL="$1"
 
+# Detect the platform (GitHub or GitLab) based on the URL
+if [[ "$REPO_URL" == *"github.com"* ]]; then
+    HOSTNAME="github.com"
+    PLATFORM="GitHub"
+    INSTRUCTIONS="Go to your repository on GitHub, navigate to Settings > Deploy keys, click on 'Add deploy key,' and paste the SSH key below. Check 'Allow write access' if needed."
+elif [[ "$REPO_URL" == *"gitlab.com"* ]]; then
+    HOSTNAME="gitlab.com"
+    PLATFORM="GitLab"
+    INSTRUCTIONS="Go to your repository on GitLab, navigate to Settings > Repository > Deploy Keys, click on 'New deploy key,' and paste the SSH key below. Check 'Write access' if needed."
+else
+    echo "Unsupported Git platform. Please provide a GitHub or GitLab repository URL."
+    exit 1
+fi
+
 # Extract the repository name from the URL
 REPO_NAME=$(basename -s .git "$REPO_URL")
 
 # Install required packages
 sudo apt update
-sudo apt install -y git python3 python3-pip uuid-runtime
+sudo apt install -y git python3 python3-pip uuid-runtime wget
 
 # Generate a new UUID for the SSH key
 UUID_SUFFIX=$(uuidgen | cut -c1-4)
@@ -51,20 +65,20 @@ echo -e "${BOLD}${YELLOW}Key:${NORMAL}"
 echo -e "${BLUE}"
 cat "$GIT_KEY_PATH.pub"
 echo -e "${NORMAL}"
-echo -e "${BOLD}${GREEN}===================================================="
-echo -e "  Copy the above key and add it as a deploy key in"
-echo -e "     your Git repository's settings page."
-echo -e "====================================================${NORMAL}"
+echo -e "${BOLD}${GREEN}====================================================${NORMAL}"
+echo -e "${BOLD}${YELLOW}Platform-specific Instructions for $PLATFORM:${NORMAL}"
+echo -e "${INSTRUCTIONS}"
+echo -e "${BOLD}${GREEN}====================================================${NORMAL}"
 
 # Wait for user confirmation before proceeding
-echo -e "\n${BOLD}${YELLOW}IMPORTANT:${NORMAL} Please add the SSH key above to your Git repository as a deploy key."
+echo -e "\n${BOLD}${YELLOW}IMPORTANT:${NORMAL} Please add the SSH key above to your $PLATFORM repository as a deploy key."
 read -p "Press Enter after you have added the key to proceed..."
 
 # Configure SSH to use this key for Git
 SSH_CONFIG="$HOME/.ssh/config"
 if ! grep -q "Host $REPO_NAME" "$SSH_CONFIG"; then
     echo "Configuring SSH to use the new Git-specific key..."
-    echo -e "\nHost $REPO_NAME\n  HostName github.com\n  IdentityFile $GIT_KEY_PATH\n  User git" | tee -a "$SSH_CONFIG" > /dev/null
+    echo -e "\nHost $REPO_NAME\n  HostName $HOSTNAME\n  IdentityFile $GIT_KEY_PATH\n  User git" | tee -a "$SSH_CONFIG" > /dev/null
 fi
 
 # Clone the repository using the new key
