@@ -54,6 +54,11 @@ BLUE=$(tput setaf 4)
 GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
 
+# Start SSH agent and add the key
+echo "Starting SSH agent and adding the key..."
+eval "$(ssh-agent -s)"
+ssh-add "$GIT_KEY_PATH"
+
 # Show the user the public key and format it for deploy keys
 TITLE="${DEVICE_NAME}-${REPO_NAME}-${UUID_SUFFIX}"
 
@@ -78,7 +83,7 @@ read -p "Press Enter after you have added the key to proceed..."
 SSH_CONFIG="$HOME/.ssh/config"
 if ! grep -q "Host $REPO_NAME" "$SSH_CONFIG"; then
     echo "Configuring SSH to use the new Git-specific key..."
-    echo -e "\nHost $REPO_NAME\n  HostName $HOSTNAME\n  IdentityFile $GIT_KEY_PATH\n  User git" | tee -a "$SSH_CONFIG" > /dev/null
+    echo -e "\nHost $REPO_NAME\n  HostName $HOSTNAME\n  IdentityFile $GIT_KEY_PATH\n  User git\n  AddKeysToAgent yes" | tee -a "$SSH_CONFIG" > /dev/null
 fi
 
 # Clone the repository using the new key
